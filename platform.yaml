@@ -16,7 +16,7 @@ spec:
       serviceAccountName: llm
       containers:
       - name: litellm
-        image: us-central1-docker.pkg.dev/boris001/containers/litellm:3
+        image: us-central1-docker.pkg.dev/DUMMY_PROJECT/containers/proxy:TAG
         ports:
         - containerPort: 4000
         resources:
