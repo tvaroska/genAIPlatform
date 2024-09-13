@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-deployment
+  labels:
+    app: litellm
+spec:
+  selector:
+    matchLabels:
+      app: litellm
+  template:
+    metadata:
+      labels:
+        app: litellm
+    spec:
+      serviceAccountName: llm
+      containers:
+      - name: litellm
+        image: us-central1-docker.pkg.dev/boris001/containers/litellm:3
+        ports:
+        - containerPort: 4000
+        resources:
+          limits:
+            memory: "2Gi"  # Maximum memory allowed
+            cpu: "0.5"
+          requests:
+            memory: "2Gi"  # Initial memory request
+            cpu: "0.5"       # Initial CPU request
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm
+  annotations:
+    networking.gke.io/load-balancer-type: "Internal"
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Cluster
+  selector:
+    app: litellm
+  ports:
+  - name: tcp-port
+    protocol: TCP
+    port: 80
+    targetPort: 4000
