@@ -3,3 +3,15 @@ poetry.lock
 pyproject.toml
 
 *.ipynb
+
+notes.md
+
+1. create cluster
+2. create service account
+3. create role
+4. assign service account role
+
+gcloud projects add-iam-policy-binding projects/boris001 \
+--role=projects/boris001/roles/Predition     \
+--member=principal://iam.googleapis.com/projects/745535691203/locations/global/workloadIdentityPools/boris001.svc.id.goog/subject/ns/default/sa/llm \
+--condition=None
