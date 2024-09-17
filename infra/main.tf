@@ -4,51 +4,44 @@ provider "google" {
   region  = "us-central1"
 }
 
+data "google_client_config" "default" {}
+
+
 # Enable required services
-resource "google_project_service" "cloud_resource_manager_api" {
-    service = "cloudresourcemanager.googleapis.com"
-}
+resource "google_project_service" "services" {
+  for_each = toset(var.services)
+  service  = each.key
 
-resource "google_project_service" "compute" {
-    service = "compute.googleapis.com"
-}
+  timeouts {
+    create = "30m"
+    update = "40m"
+  }
 
-resource "google_project_service" "networking" {
-    service = "servicenetworking.googleapis.com"
-}
-
-resource "google_project_service" "container" {
-    service = "container.googleapis.com"
-}
-
-resource "google_project_service" "sqladmin" {
-    service = "sqladmin.googleapis.com"
-}
-
-resource "google_project_service" "redis" {
-    service = "redis.googleapis.com"
-}
-
-# VPC
-resource "google_compute_network" "vpc" {
-  name                    = "my-vpc"
-  auto_create_subnetworks = false
+  disable_dependent_services = true
 }
 
 # Disable organization constraints
-resource "google_organization_policy" "disable_shielded_vm" {
-  name         = "disable-shielded-vm"
-  parent       = "organizations/your-organization-id"
-  constraint   = "constraints/compute.requireShieldedVm"
+resource "google_project_organization_policy" "shielded_vm_disable" {
+  constraint = "compute.requireShieldedVm"
+  project = data.google_client_config.default.project
+
   boolean_policy {
     enforced = false
   }
 }
+
+
+# VPC
+resource "google_compute_network" "vpc" {
+  name                    = "genaiplatform"
+  auto_create_subnetworks = false
+}
+
 # Services subnet (large private one)
 resource "google_compute_subnetwork" "services" {
   name          = "services-subnet"
   ip_cidr_range = "10.0.1.0/24"
-  region        = "us-central1"
+  region        = data.google_client_config.default.region
   network       = google_compute_network.vpc.id
   private_ip_google_access = true
 }
@@ -57,7 +50,7 @@ resource "google_compute_subnetwork" "services" {
 resource "google_compute_subnetwork" "dev" {
   name          = "dev-subnet"
   ip_cidr_range = "10.0.2.0/26"
-  region        = "us-central1"
+  region        = data.google_client_config.default.region
   network       = google_compute_network.vpc.id
   private_ip_google_access = true
 }
@@ -66,14 +59,14 @@ resource "google_compute_subnetwork" "dev" {
 resource "google_compute_subnetwork" "dmz" {
   name          = "dmz-subnet"
   ip_cidr_range = "10.0.3.0/26"
-  region        = "us-central1"
+  region        = data.google_client_config.default.region
   network       = google_compute_network.vpc.id
 }
 
 # Router for the DMZ subnet
 resource "google_compute_router" "router" {
   name    = "dmz-router"
-  region  = "us-central1"
+  region  = data.google_client_config.default.region
   network = google_compute_network.vpc.id
 }
 
@@ -81,7 +74,7 @@ resource "google_compute_router" "router" {
 resource "google_compute_router_nat" "nat" {
   name                               = "dmz-nat"
   router                             = google_compute_router.router.name
-  region                             = "us-central1"
+  region                             = data.google_client_config.default.region
   nat_ip_allocate_option             = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
   
