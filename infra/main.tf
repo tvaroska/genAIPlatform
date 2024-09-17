@@ -5,24 +5,28 @@ provider "google" {
 }
 
 # Enable required services
+resource "google_project_service" "cloud_resource_manager_api" {
+    service = "cloudresourcemanager.googleapis.com"
+}
+
 resource "google_project_service" "compute" {
-  service = "compute.googleapis.com"
+    service = "compute.googleapis.com"
 }
 
 resource "google_project_service" "networking" {
-  service = "servicenetworking.googleapis.com"
+    service = "servicenetworking.googleapis.com"
 }
 
 resource "google_project_service" "container" {
-  service = "container.googleapis.com"
+    service = "container.googleapis.com"
 }
 
 resource "google_project_service" "sqladmin" {
-  service = "sqladmin.googleapis.com"
+    service = "sqladmin.googleapis.com"
 }
 
 resource "google_project_service" "redis" {
-  service = "redis.googleapis.com"
+    service = "redis.googleapis.com"
 }
 
 # VPC
@@ -31,6 +35,15 @@ resource "google_compute_network" "vpc" {
   auto_create_subnetworks = false
 }
 
+# Disable organization constraints
+resource "google_organization_policy" "disable_shielded_vm" {
+  name         = "disable-shielded-vm"
+  parent       = "organizations/your-organization-id"
+  constraint   = "constraints/compute.requireShieldedVm"
+  boolean_policy {
+    enforced = false
+  }
+}
 # Services subnet (large private one)
 resource "google_compute_subnetwork" "services" {
   name          = "services-subnet"
@@ -86,7 +99,7 @@ resource "google_compute_instance" "dev_vm" {
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2024-lts"
+      image = "ubuntu-os-cloud/ubuntu-2404-lts"
       size  = 50
     }
   }
@@ -104,7 +117,7 @@ resource "google_compute_instance" "copy_vm" {
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2204-lts"
+      image = "ubuntu-os-cloud/ubuntu-2404-lts"
       size  = 50
     }
   }

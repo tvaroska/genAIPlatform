@@ -1,3 +1,6 @@
+infra/.terraform/*
+infra/.terraform.lock.hd
+
 # Poetry not needed for now
 poetry.lock
 pyproject.toml
