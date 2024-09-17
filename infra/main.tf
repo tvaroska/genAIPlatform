@@ -30,9 +30,18 @@ resource "google_project_organization_policy" "shielded_vm_disable" {
   }
 }
 
+resource "time_sleep" "wait_for_services" {
+  depends_on = [
+    google_project_service.services
+  ]
+
+  create_duration = "60s"
+}
+
 
 # VPC
 resource "google_compute_network" "vpc" {
+  depends_on = time_sleep.wait_for_services
   name                    = "genaiplatform"
   auto_create_subnetworks = false
 }
