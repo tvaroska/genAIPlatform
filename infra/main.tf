@@ -41,7 +41,7 @@ resource "time_sleep" "wait_for_services" {
 
 # VPC
 resource "google_compute_network" "vpc" {
-  depends_on = time_sleep.wait_for_services
+  depends_on = [time_sleep.wait_for_services]
   name                    = "genaiplatform"
   auto_create_subnetworks = false
 }
