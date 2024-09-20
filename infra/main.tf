@@ -185,11 +185,8 @@ resource "google_container_cluster" "primary" {
   subnetwork = google_compute_subnetwork.services.name
 
   enable_autopilot = true
+  deletion_protection = false
 
-  # ip_allocation_policy {
-  #   cluster_secondary_range_name  = "pod-range"
-  #   services_secondary_range_name = "service-range"
-  # }
 }
 
 # Cloud SQL Postgres instance in services subnet
