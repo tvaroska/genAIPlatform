@@ -49,7 +49,7 @@ resource "google_compute_network" "vpc" {
 # Services subnet (large private one)
 resource "google_compute_subnetwork" "services" {
   name          = "services-subnet"
-  ip_cidr_range = "10.0.1.0/24"
+  ip_cidr_range = "10.0.0.0/17"
   region        = data.google_client_config.default.region
   network       = google_compute_network.vpc.id
   private_ip_google_access = true
@@ -58,7 +58,7 @@ resource "google_compute_subnetwork" "services" {
 # Dev subnet (smaller private one)
 resource "google_compute_subnetwork" "dev" {
   name          = "dev-subnet"
-  ip_cidr_range = "10.0.2.0/26"
+  ip_cidr_range = "10.0.128.0/18"
   region        = data.google_client_config.default.region
   network       = google_compute_network.vpc.id
   private_ip_google_access = true
@@ -67,20 +67,51 @@ resource "google_compute_subnetwork" "dev" {
 # DMZ subnet (smaller one with internet access)
 resource "google_compute_subnetwork" "dmz" {
   name          = "dmz-subnet"
-  ip_cidr_range = "10.0.3.0/26"
+  ip_cidr_range = "10.0.192.0/18"
   region        = data.google_client_config.default.region
   network       = google_compute_network.vpc.id
 }
 
+# Reserved range for Privete Access?
+resource "google_compute_global_address" "private_ip_address" {
+  name          = "private-ip-address"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 24
+  network       = google_compute_network.peering_network.id
+}
+
+
+# Router for the DEV subnet
+resource "google_compute_router" "dev_router" {
+  name    = "dev-router"
+  region  = data.google_client_config.default.region
+  network = google_compute_network.vpc.id
+}
+
+# NAT gateway for the DMZ subnet
+resource "google_compute_router_nat" "dev_nat" {
+  name                               = "dev-nat"
+  router                             = google_compute_router.router.name
+  region                             = data.google_client_config.default.region
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
+  
+  subnetwork {
+    name                    = google_compute_subnetwork.dev.id
+    source_ip_ranges_to_nat = ["ALL_IP_RANGES"]
+  }
+}
+
 # Router for the DMZ subnet
-resource "google_compute_router" "router" {
+resource "google_compute_router" "dmz_router" {
   name    = "dmz-router"
   region  = data.google_client_config.default.region
   network = google_compute_network.vpc.id
 }
 
 # NAT gateway for the DMZ subnet
-resource "google_compute_router_nat" "nat" {
+resource "google_compute_router_nat" "dmz_nat" {
   name                               = "dmz-nat"
   router                             = google_compute_router.router.name
   region                             = data.google_client_config.default.region
@@ -126,9 +157,6 @@ resource "google_compute_instance" "copy_vm" {
 
   network_interface {
     subnetwork = google_compute_subnetwork.dmz.id
-    access_config {
-      // This empty block will create an ephemeral external IP
-    }
   }
 
   tags = ["allow-ssh"]
@@ -158,10 +186,10 @@ resource "google_container_cluster" "primary" {
 
   enable_autopilot = true
 
-  ip_allocation_policy {
-    cluster_secondary_range_name  = "pod-range"
-    services_secondary_range_name = "service-range"
-  }
+  # ip_allocation_policy {
+  #   cluster_secondary_range_name  = "pod-range"
+  #   services_secondary_range_name = "service-range"
+  # }
 }
 
 # Cloud SQL Postgres instance in services subnet
