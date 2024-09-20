@@ -78,7 +78,7 @@ resource "google_compute_global_address" "private_ip_address" {
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
   prefix_length = 24
-  network       = google_compute_network.peering_network.id
+  network       = google_compute_network.vpc.id
 }
 
 
@@ -92,7 +92,7 @@ resource "google_compute_router" "dev_router" {
 # NAT gateway for the DMZ subnet
 resource "google_compute_router_nat" "dev_nat" {
   name                               = "dev-nat"
-  router                             = google_compute_router.router.name
+  router                             = google_compute_router.dev_router.name
   region                             = data.google_client_config.default.region
   nat_ip_allocate_option             = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
@@ -113,7 +113,7 @@ resource "google_compute_router" "dmz_router" {
 # NAT gateway for the DMZ subnet
 resource "google_compute_router_nat" "dmz_nat" {
   name                               = "dmz-nat"
-  router                             = google_compute_router.router.name
+  router                             = google_compute_router.dmz_router.name
   region                             = data.google_client_config.default.region
   nat_ip_allocate_option             = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
@@ -132,7 +132,7 @@ resource "google_compute_instance" "dev_vm" {
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2404-lts"
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
       size  = 50
     }
   }
@@ -150,7 +150,7 @@ resource "google_compute_instance" "copy_vm" {
 
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2404-lts"
+      image = "ubuntu-os-cloud/ubuntu-2204-lts"
       size  = 50
     }
   }
