@@ -1,3 +1,8 @@
+variable "project" {
+  type        = str
+  description = "Project ID"
+}
+
 variable "services" {
   type        = list(string)
   description = "Enable services - list"
@@ -11,4 +16,9 @@ variable "services" {
     "sqladmin.googleapis.com",
     "redis.googleapis.com"
   ]
+}
+
+variable "rolesList" {
+  type = list(string)
+  default = ["roles/storage.legacyBucketOwner"]
 }

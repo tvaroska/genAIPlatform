@@ -12,6 +12,12 @@ clean:
 	@find . -name '*.yaml' -exec sed -i 's/$(PROJECT_ID)/DUMMY_PROJECT/g' {} \;
 	@find . -name '*.yaml' -exec sed -i 's/$(TODAY)/TAG/g' {} \;
 
+
+# Enable required services in project
+services:
+	gcloud services enable serviceusage.googleapis.com
+	gcloud services enable cloudresourcemanager.googleapis.com
+
 show:
 	@echo $(PROJECT_ID)
 
@@ -22,3 +28,17 @@ build_proxy:
 	@gcloud builds submit \
 		--tag $(PROXY_IMAGE):$(TODAY) \
 		proxy/
+
+settings:
+	@echo "Current settings"
+	@echo Project = $(PROJECT_ID)
+	@echo Today is $(TODAY)
+
+.ONESHELL
+infra: services
+	cd infra
+	terraform init
+	terraform apply -var project=$(PROJECT_ID)
+
+authorize: infra
+	gcloud container clusters get-credentials platform --region=us-central1

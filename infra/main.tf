@@ -1,6 +1,6 @@
 # Provider configuration
 provider "google" {
-  project = "platform001"
+  project = var.project
   region  = "us-central1"
 }
 
@@ -36,6 +36,12 @@ resource "time_sleep" "wait_for_services" {
   ]
 
   create_duration = "60s"
+}
+
+
+resource "google_storage_bucket" "bucket" {
+  name          = var.project
+  location      = "us-central1"
 }
 
 
@@ -77,10 +83,16 @@ resource "google_compute_global_address" "private_ip_address" {
   name          = "private-ip-address"
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
-  prefix_length = 24
+  prefix_length = 20
   network       = google_compute_network.vpc.id
 }
 
+# Private access
+resource "google_service_networking_connection" "default" {
+  network                 = google_compute_network.vpc.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
+}
 
 # Router for the DEV subnet
 resource "google_compute_router" "dev_router" {
@@ -124,6 +136,22 @@ resource "google_compute_router_nat" "dmz_nat" {
   }
 }
 
+resource "google_service_account" "dev" {
+  account_id   = "developer"
+  display_name = "Custom SA for VM Instance"
+}
+
+resource "google_project_iam_binding" "dev_account" {
+  project = var.project
+  count = length(var.rolesList)
+  role =  var.rolesList[count.index]
+  members = [
+    "serviceAccount:${google_service_account.dev.email}"
+  ]
+}
+
+
+
 # Ubuntu VM in dev subnet
 resource "google_compute_instance" "dev_vm" {
   name         = "dev-vm"
@@ -140,6 +168,12 @@ resource "google_compute_instance" "dev_vm" {
   network_interface {
     subnetwork = google_compute_subnetwork.dev.id
   }
+
+  service_account {
+    email  = google_service_account.dev.email
+    scopes = ["cloud-platform"]
+  }
+
 }
 
 # Copy VM in DMZ (public) subnet
@@ -157,6 +191,11 @@ resource "google_compute_instance" "copy_vm" {
 
   network_interface {
     subnetwork = google_compute_subnetwork.dmz.id
+  }
+
+  service_account {
+    email  = google_service_account.dev.email
+    scopes = ["cloud-platform"]
   }
 
   tags = ["allow-ssh"]
@@ -178,7 +217,7 @@ resource "google_compute_firewall" "allow_ssh" {
 
 # GKE Autopilot cluster in services subnet
 resource "google_container_cluster" "primary" {
-  name     = "my-gke-cluster"
+  name     = "platform"
   location = "us-central1"
 
   network    = google_compute_network.vpc.name
@@ -203,6 +242,7 @@ resource "google_sql_database_instance" "postgres" {
   }
 
   deletion_protection = false
+  depends_on = [ google_service_networking_connection.default ]
 }
 
 # Redis instance in services subnet
@@ -211,9 +251,9 @@ resource "google_redis_instance" "cache" {
   tier           = "BASIC"
   memory_size_gb = 1
 
-  location_id             = "us-central1-a"
-  alternative_location_id = "us-central1-f"
-
+  region = "us-cemtral1"
+  
   authorized_network = google_compute_network.vpc.id
   connect_mode       = "PRIVATE_SERVICE_ACCESS"
+  depends_on = [ google_service_networking_connection.default ]
 }
