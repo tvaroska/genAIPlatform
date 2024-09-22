@@ -41,7 +41,7 @@ settings:
 infra: services
 	cd infra
 	terraform init
-	terraform apply -var project=$(PROJECT_ID)
+	terraform apply -var project=$(PROJECT_ID) --auto-approve
 
 step1: infra
 
