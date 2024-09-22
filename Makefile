@@ -2,6 +2,8 @@ PROJECT_ID := $(shell gcloud config get-value project)
 TODAY := $(shell date +%Y-%m-%d)
 PROXY_IMAGE := us-central1-docker.pkg.dev/$(PROJECT_ID)/containers/proxy
 
+MAKEFLAGS += -j2
+
 # Update project and image tags
 replace:
 	@find . -name '*.yaml' -exec sed -i 's/DUMMY_PROJECT/$(PROJECT_ID)/g' {} \;
@@ -24,6 +26,7 @@ show:
 print_date:
 	@echo $(TODAY)
 
+.ONESHELL:
 build_proxy:
 	@gcloud builds submit \
 		--tag $(PROXY_IMAGE):$(TODAY) \
@@ -34,11 +37,16 @@ settings:
 	@echo Project = $(PROJECT_ID)
 	@echo Today is $(TODAY)
 
-.ONESHELL
+.ONESHELL:
 infra: services
 	cd infra
 	terraform init
 	terraform apply -var project=$(PROJECT_ID)
 
-authorize: infra
+step1: infra
+
+authorize:
 	gcloud container clusters get-credentials platform --region=us-central1
+
+
+test: show print_date
