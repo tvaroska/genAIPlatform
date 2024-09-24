@@ -3,6 +3,12 @@ variable "project" {
   description = "Project ID"
 }
 
+variable "region" {
+    type        = string
+    description = "Region"
+    default     = "us-central1"
+}
+
 variable "services" {
   type        = list(string)
   description = "Enable services - list"
@@ -16,9 +22,4 @@ variable "services" {
     "sqladmin.googleapis.com",
     "redis.googleapis.com"
   ]
-}
-
-variable "rolesList" {
-  type = list(string)
-  default = ["roles/storage.legacyBucketOwner"]
 }
