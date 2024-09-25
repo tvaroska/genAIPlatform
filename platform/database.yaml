@@ -65,6 +65,13 @@ spec:
       - name: postgres-storage
         persistentVolumeClaim:
           claimName: postgres-pvc
+      resources:
+        limits:
+          memory: "2Gi"  # Maximum memory allowed
+          cpu: "0.5"
+        requests:
+          memory: "2Gi"  # Initial memory request
+          cpu: "0.5"       # Initial CPU request
 ---
 apiVersion: v1
 kind: Service
