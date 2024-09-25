@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: litellm-deployment
+  namespace: platform
   labels:
     app: litellm
 spec:
@@ -16,7 +17,7 @@ spec:
       serviceAccountName: llm
       containers:
       - name: litellm
-        image: us-central1-docker.pkg.dev/DUMMY_PROJECT/containers/proxy:2024-09-20
+        image: us-central1-docker.pkg.dev/boris001/containers/proxy:2024-09-20
         ports:
         - containerPort: 4000
         resources:
@@ -31,6 +32,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: llm
+  namespace: platform
   annotations:
     networking.gke.io/load-balancer-type: "Internal"
 spec:
