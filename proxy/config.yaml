@@ -2,5 +2,5 @@ model_list:
   - model_name: flash
     litellm_params:
       model: "vertex_ai/gemini-1.5-flash-001"
-      vertex_project: "boris001"
+      vertex_project: "DUMMY_PROJECT"
       vertex_location: "us-central1"

@@ -17,7 +17,7 @@ spec:
       serviceAccountName: llm
       containers:
       - name: litellm
-        image: us-central1-docker.pkg.dev/boris001/containers/proxy:2024-09-25
+        image: us-central1-docker.pkg.dev/DUMMY_PROJECT/containers/proxy:2024-09-25
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
