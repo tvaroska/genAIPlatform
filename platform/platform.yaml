@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: litellm-deployment
+  name: litellm
   namespace: platform
   labels:
     app: litellm
@@ -17,9 +17,33 @@ spec:
       serviceAccountName: llm
       containers:
       - name: litellm
-        image: us-central1-docker.pkg.dev/boris001/containers/proxy:2024-09-20
+        image: us-central1-docker.pkg.dev/boris001/containers/proxy:2024-09-25
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /health/liveliness
+            port: 4000
+          initialDelaySeconds: 120
+          periodSeconds: 15
+          successThreshold: 1
+          failureThreshold: 3
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 4000
+          initialDelaySeconds: 120
+          periodSeconds: 15
+          successThreshold: 1
+          failureThreshold: 3
+          timeoutSeconds: 10
         ports:
         - containerPort: 4000
+        env:
+        - name: LITELLM_MASTER_KEY
+          value: "sk-1234"
+        - name: DATABASE_URL
+          value: "postgresql://data:heslo@postgres.platform.svc.cluster.local:5432/postgres"
         resources:
           limits:
             memory: "2Gi"  # Maximum memory allowed

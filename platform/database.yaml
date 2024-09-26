@@ -26,6 +26,8 @@ kind: Deployment
 metadata:
   name: postgres
   namespace: platform
+  labels:
+    app: postgresql
 spec:
   replicas: 1
   selector:
@@ -40,6 +42,13 @@ spec:
       - name: postgres
         image: postgres:16.0
         imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: "2Gi"  # Maximum memory allowed
+            cpu: "0.5"
+          requests:
+            memory: "2Gi"  # Initial memory request
+            cpu: "0.5"       # Initial CPU request
         env:
         - name: POSTGRES_USER
           valueFrom:
@@ -65,25 +74,21 @@ spec:
       - name: postgres-storage
         persistentVolumeClaim:
           claimName: postgres-pvc
-      resources:
-        limits:
-          memory: "2Gi"  # Maximum memory allowed
-          cpu: "0.5"
-        requests:
-          memory: "2Gi"  # Initial memory request
-          cpu: "0.5"       # Initial CPU request
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  labels:
-    app: postgresql
+  namespace: platform
+#  annotations:
+#    networking.gke.io/load-balancer-type: "Internal"
 spec:
+#  type: LoadBalancer
+#  externalTrafficPolicy: Cluster
   selector:
-    app: postgres
+    app: postgresql
   ports:
   - name: tcp-port
-    protocol: TCP
+#    protocol: TCP
     port: 5432
-    targetPort: 5432
+#    targetPort: 5432

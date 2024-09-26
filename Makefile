@@ -1,8 +1,7 @@
 PROJECT_ID := $(shell gcloud config get-value project)
+# PROJECT_NO := $(shell gcloud projects list --filter="$(PROJECT_ID)" --format="value(PROJECT_NUMBER)")
 TODAY := $(shell date +%Y-%m-%d)
 PROXY_IMAGE := us-central1-docker.pkg.dev/$(PROJECT_ID)/containers/proxy
-
-MAKEFLAGS += -j2
 
 # Update project and image tags
 replace:
@@ -48,5 +47,5 @@ step1: infra
 authorize:
 	gcloud container clusters get-credentials platform --region=us-central1
 
-
-test: show print_date
+test:
+	gcloud projects add-iam-policy-binding projects/boris001 --role=roles/aiplatform.user --member=principal://iam.googleapis.com/projects/745535691203/locations/global/workloadIdentityPools/boris001.svc.id.goog/subject/ns/platform/sa/llm
