@@ -17,7 +17,7 @@ spec:
       serviceAccountName: llm
       containers:
       - name: litellm
-        image: us-central1-docker.pkg.dev/DUMMY_PROJECT/containers/proxy:2024-09-25
+        image: us-central1-docker.pkg.dev/DUMMY_PROJECT/containers/proxy:2024-09-27
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -35,7 +35,7 @@ spec:
           initialDelaySeconds: 120
           periodSeconds: 15
           successThreshold: 1
-          failureThreshold: 3
+          failureThreshold: 10
           timeoutSeconds: 10
         ports:
         - containerPort: 4000

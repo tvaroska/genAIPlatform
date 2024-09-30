@@ -1,6 +1,40 @@
 model_list: 
   - model_name: flash
     litellm_params:
-      model: "vertex_ai/gemini-1.5-flash-001"
+      model: "vertex_ai/gemini-1.5-flash-002"
       vertex_project: "DUMMY_PROJECT"
       vertex_location: "us-central1"
+  - model_name: pro
+    litellm_params:
+      model: "vertex_ai/gemini-1.5-pro-002"
+      vertex_project: "DUMMY_PROJECT"
+      vertex_location: "us-central1"
+      rpm: 60
+  - model_name: pro
+    litellm_params:
+      model: "vertex_ai/gemini-1.5-pro-002"
+      vertex_project: "DUMMY_PROJECT"
+      vertex_location: "us-central2"
+      rpm: 60
+  - model_name: pro
+    litellm_params:
+      model: "vertex_ai/gemini-1.5-pro-002"
+      vertex_project: "DUMMY_PROJECT"
+      vertex_location: "us-east1"
+      rpm: 60
+  - model_name: pro
+    litellm_params:
+      model: "vertex_ai/gemini-1.5-pro-002"
+      vertex_project: "DUMMY_PROJECT"
+      vertex_location: "us-east4"
+      rpm: 60
+  - model_name: pro
+    litellm_params:
+      model: "vertex_ai/gemini-1.5-pro-002"
+      vertex_project: "DUMMY_PROJECT"
+      vertex_location: "us-east5"
+      rpm: 60
+router_settings:
+  redis_host: redis.platform.svc.cluster.local
+  redis_password: heslo
+  redis_port: 1992

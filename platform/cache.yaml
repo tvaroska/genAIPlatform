@@ -17,6 +17,9 @@ spec:
       - name: redis
         image: redis:7.4.0-alpine3.20
         imagePullPolicy: IfNotPresent
+        args:
+        - --requirepass
+        - heslo
         resources:
           limits:
             memory: "2Gi"  # Maximum memory allowed
